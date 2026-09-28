@@ -19,11 +19,6 @@ export function NoteView({ id }: { id: string }) {
     if (!notes.some((entry) => entry.id === id)) router.replace("/notes");
   }, [ready, notes, id, router]);
 
-  useEffect(() => {
-    if (!draft?.id) return;
-    if (!notes.some((entry) => entry.id === draft.id)) setDraft(null);
-  }, [notes, draft]);
-
   function saveNote() {
     if (!draft?.id) return;
     const title = draft.title.trim();

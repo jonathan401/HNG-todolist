@@ -4,18 +4,15 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { TrashIcon, WriteIcon } from "@/components/icons";
 import { CheckBox } from "@/components/ui/checkbox";
-import { tint } from "@/lib/format";
-import type { Category, Item } from "@/lib/types";
+import type { Item } from "@/lib/types";
 
 export function TaskRow({
   item,
-  category,
   onToggle,
   onOpen,
   onAskDelete,
 }: {
   item: Item;
-  category: Category | null;
   onToggle: () => void;
   onOpen: () => void;
   onAskDelete: () => void;
@@ -73,15 +70,6 @@ export function TaskRow({
               </button>
             </div>
           </div>
-          {category && (
-            <span
-              className="mt-2 inline-flex items-center gap-1.5 rounded px-1.5 py-1 text-[12px] leading-[15px] font-semibold tracking-[0.04em] uppercase"
-              style={{ background: tint(category.color), color: category.color }}
-            >
-              <span className="size-1.5 rounded-full" style={{ background: category.color }} />
-              {category.name}
-            </span>
-          )}
         </div>
       </div>
     </motion.li>

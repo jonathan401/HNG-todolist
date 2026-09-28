@@ -1,28 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { NoteModal } from "@/components/notes/note-modal";
 import { useTodo } from "@/components/todo-store";
 import { formatTimestamp, noteWasEdited } from "@/lib/format";
 import type { NoteDraft } from "@/lib/types";
 
 export function NotesList() {
-  const { ready, notes, createNote, updateNote, setPendingDelete } = useTodo();
+  const { ready, notes, createNote, setPendingDelete } = useTodo();
   const [draft, setDraft] = useState<NoteDraft | null>(null);
-
-  useEffect(() => {
-    if (!draft?.id) return;
-    if (!notes.some((note) => note.id === draft.id)) setDraft(null);
-  }, [notes, draft]);
 
   function saveNote() {
     if (!draft) return;
     const title = draft.title.trim();
     const body = draft.body.trim();
     if (!title && !body) return;
-    if (draft.id) updateNote(draft.id, { title, body });
-    else createNote(title, body);
+    createNote(title, body);
     setDraft(null);
   }
 

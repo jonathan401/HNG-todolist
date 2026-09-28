@@ -6,13 +6,13 @@ import {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import {
   CATEGORIES_KEY,
   ITEMS_KEY,
   NOTES_KEY,
-  PALETTE,
   THEME_KEY,
   UNCATEGORIZED_ID,
 } from "@/lib/constants";
@@ -55,9 +55,50 @@ type TodoContextValue = {
   confirmDelete: () => void;
 };
 
+type StoredTodo = {
+  theme: Theme;
+  todayLabel: string;
+  items: Item[];
+  notes: Note[];
+  categories: Category[];
+};
+
+let storedTodo: StoredTodo | null = null;
+
+function readStoredTodo(): StoredTodo {
+  if (storedTodo) return storedTodo;
+  const storedTheme = localStorage.getItem(THEME_KEY);
+  const theme: Theme =
+    storedTheme === "light" || storedTheme === "dark"
+      ? storedTheme
+      : window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+  const loaded = parseItems(localStorage.getItem(ITEMS_KEY));
+  const storedNotes = parseNotes(localStorage.getItem(NOTES_KEY));
+  const known = new Set(storedNotes.map((note) => note.id));
+  storedTodo = {
+    theme,
+    todayLabel: formatDayMonth(new Date()),
+    items: loaded.items,
+    notes: [...loaded.liftedNotes.filter((note) => !known.has(note.id)), ...storedNotes],
+    categories: parseCategories(localStorage.getItem(CATEGORIES_KEY)),
+  };
+  return storedTodo;
+}
+
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
+
 const TodoContext = createContext<TodoContextValue | null>(null);
 
 export function TodoProvider({ children }: { children: ReactNode }) {
+  const isClient = useIsClient();
   const [items, setItems] = useState<Item[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -69,25 +110,22 @@ export function TodoProvider({ children }: { children: ReactNode }) {
   const [categoryDraft, setCategoryDraft] = useState<CategoryDraft | null>(null);
   const [todayLabel, setTodayLabel] = useState("");
 
-  useEffect(() => {
-    const storedTheme = localStorage.getItem(THEME_KEY);
-    const nextTheme: Theme =
-      storedTheme === "light" || storedTheme === "dark"
-        ? storedTheme
-        : window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light";
-    document.documentElement.classList.toggle("dark", nextTheme === "dark");
-    const loaded = parseItems(localStorage.getItem(ITEMS_KEY));
-    const storedNotes = parseNotes(localStorage.getItem(NOTES_KEY));
-    const known = new Set(storedNotes.map((note) => note.id));
-    setTheme(nextTheme);
-    setItems(loaded.items);
-    setNotes([...loaded.liftedNotes.filter((note) => !known.has(note.id)), ...storedNotes]);
-    setCategories(parseCategories(localStorage.getItem(CATEGORIES_KEY)));
-    setTodayLabel(formatDayMonth(new Date()));
+  // localStorage is only available in the browser. Copy it into state on that
+  // first client render instead of inside an effect.
+  if (isClient && !ready) {
+    const stored = readStoredTodo();
+    setTheme(stored.theme);
+    setItems(stored.items);
+    setNotes(stored.notes);
+    setCategories(stored.categories);
+    setTodayLabel(stored.todayLabel);
     setReady(true);
-  }, []);
+  }
+
+  useEffect(() => {
+    if (!theme) return;
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
 
   useEffect(() => {
     if (!ready) return;

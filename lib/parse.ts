@@ -14,7 +14,6 @@ export function parseItems(raw: string | null): {
       if (!entry || typeof entry !== "object") return [];
       const item = entry as Partial<Item> & {
         notes?: unknown;
-        category?: unknown;
       };
       if (typeof item.id !== "string" || typeof item.title !== "string") return [];
       const legacyNotes = typeof item.notes === "string" ? item.notes.trim() : "";

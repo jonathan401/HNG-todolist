@@ -21,7 +21,6 @@ export const MONTHS = [
 export const UNCATEGORIZED_ID = "uncategorized";
 
 export const UNCATEGORIZED = {
-  id: UNCATEGORIZED_ID,
   name: "Uncategorized",
   color: "#908986",
 };

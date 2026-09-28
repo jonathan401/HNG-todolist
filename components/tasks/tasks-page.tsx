@@ -145,7 +145,6 @@ export function TasksPage() {
                   <TaskRow
                     key={`${categoryFilter}-${status}-${item.id}`}
                     item={item}
-                    category={null}
                     onToggle={() => updateItem(item.id, { done: !item.done })}
                     onOpen={() => openTask(item.id)}
                     onAskDelete={() => setPendingDelete({ type: "task", id: item.id })}

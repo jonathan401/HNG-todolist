@@ -18,10 +18,11 @@ export function NoteModal({
   onAskDelete: () => void;
 }) {
   const canSave = Boolean(draft.title.trim() || draft.body.trim());
-  const edited =
+  const edited = Boolean(
     draft.createdAt &&
-    draft.updatedAt &&
-    Math.abs(new Date(draft.updatedAt).getTime() - new Date(draft.createdAt).getTime()) > 60_000;
+      draft.updatedAt &&
+      noteWasEdited({ createdAt: draft.createdAt, updatedAt: draft.updatedAt }),
+  );
 
   useDismissOnEscape(onCancel);
 
